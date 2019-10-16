@@ -1,0 +1,26 @@
+<annotation>
+	<folder>images</folder>
+	<filename>56.jpg</filename>
+	<path>R:\Temp\training\data\images\56.jpg</path>
+	<source>
+		<database>Unknown</database>
+	</source>
+	<size>
+		<width>810</width>
+		<height>606</height>
+		<depth>3</depth>
+	</size>
+	<segmented>0</segmented>
+	<object>
+		<name>cb</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>216</xmin>
+			<ymin>436</ymin>
+			<xmax>573</xmax>
+			<ymax>539</ymax>
+		</bndbox>
+	</object>
+</annotation>
