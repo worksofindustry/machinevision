@@ -1,21 +1,18 @@
-# display image with masks and bounding boxes
+# fit a mask rcnn on the kangaroo dataset
 from os import listdir
 from xml.etree import ElementTree
 from numpy import zeros
 from numpy import asarray
 from mrcnn.utils import Dataset
-from mrcnn.visualize import display_instances
-from mrcnn.utils import extract_bboxes
 from mrcnn.config import Config
 from mrcnn.model import MaskRCNN
-from matplotlib import pyplot
 
-# class that defines and loads the cb dataset
-class CBDataSet(Dataset):
+# class that defines and loads the kangaroo dataset
+class KangarooDataset(Dataset):
 	# load the dataset definitions
 	def load_dataset(self, dataset_dir, is_train=True):
 		# define one class
-		self.add_class("dataset", 1, "cb")
+		self.add_class("dataset", 1, "kangaroo")
 		# define data locations
 		images_dir = dataset_dir + '/images/'
 		annotations_dir = dataset_dir + '/annots/'
@@ -23,14 +20,14 @@ class CBDataSet(Dataset):
 		for filename in listdir(images_dir):
 			# extract image id
 			image_id = filename[:-4]
-			# skip bad images, or windows system files
-			if image_id in ['00090','Thumb','Thumbs']:
+			# skip bad images
+			if image_id in ['00090']:
 				continue
-			# skip all images after 78 if we are building the train set
-			if is_train and int(image_id) >= 78:
+			# skip all images after 150 if we are building the train set
+			if is_train and int(image_id) >= 150:
 				continue
-			# skip all images before 78 if we are building the test/val set
-			if not is_train and int(image_id) < 78:
+			# skip all images before 150 if we are building the test/val set
+			if not is_train and int(image_id) < 150:
 				continue
 			img_path = images_dir + filename
 			ann_path = annotations_dir + image_id + '.xml'
@@ -39,11 +36,11 @@ class CBDataSet(Dataset):
 
 	# extract bounding boxes from an annotation file
 	def extract_boxes(self, filename):
-		# load and parse the xml annotation file, had details on objects position in image
+		# load and parse the file
 		tree = ElementTree.parse(filename)
 		# get the root of the document
 		root = tree.getroot()
-		# extract each bounding box, using the XPath query looking for the bndbox element
+		# extract each bounding box
 		boxes = list()
 		for box in root.findall('.//bndbox'):
 			xmin = int(box.find('xmin').text)
@@ -74,7 +71,7 @@ class CBDataSet(Dataset):
 			row_s, row_e = box[1], box[3]
 			col_s, col_e = box[0], box[2]
 			masks[row_s:row_e, col_s:col_e, i] = 1
-			class_ids.append(self.class_names.index('cb'))
+			class_ids.append(self.class_names.index('kangaroo'))
 		return masks, asarray(class_ids, dtype='int32')
 
 	# load an image reference
@@ -83,64 +80,26 @@ class CBDataSet(Dataset):
 		return info['path']
 
 # define a configuration for the model
-class CBConfig(Config):
-	# Give the configuration a recognizable name
-	NAME = "cb_cfg"
-	# Number of classes (background + cb)
+class KangarooConfig(Config):
+	# define the name of the configuration
+	NAME = "kangaroo_cfg"
+	# number of classes (background + kangaroo)
 	NUM_CLASSES = 1 + 1
-	# Number of training steps per epoch, numb photos in training dataset
-	STEPS_PER_EPOCH = 78
-
-"""# testing
-# enumerate all images in the dataset
-for image_id in train_set.image_ids:
-	# load image info
-	info = train_set.image_info[image_id]
-	# display on the console
-	print(info)"""
-
-"""# train set
-train_set = CBDataSet()
-train_set.load_dataset('cb', is_train=True)
-train_set.prepare()
-# define image id
-image_id = 18
-# load the image
-image = train_set.load_image(image_id)
-# load the masks and the class ids
-mask, class_ids = train_set.load_mask(image_id)
-# extract bounding boxes from the masks
-bbox = extract_bboxes(mask)
-# display image with masks and bounding boxes
-display_instances(image, bbox, mask, class_ids, train_set.class_names)"""
-
-"""# more testing
-# plot first few images
-for i in range(9):
-	# define subplot
-	pyplot.subplot(330 + 1 + i)
-	# plot raw pixel data
-	image = train_set.load_image(i)
-	pyplot.imshow(image)
-	# plot all masks
-	mask, _ = train_set.load_mask(i)
-	for j in range(mask.shape[2]):
-		pyplot.imshow(mask[:, :, j], cmap='gray', alpha=0.3)
-# show the figure
-pyplot.show()"""
+	# number of training steps per epoch
+	STEPS_PER_EPOCH = 131
 
 # prepare train set
-train_set = CBDataset()
-train_set.load_dataset('cb', is_train=True)
+train_set = KangarooDataset()
+train_set.load_dataset('kangaroo', is_train=True)
 train_set.prepare()
 print('Train: %d' % len(train_set.image_ids))
 # prepare test/val set
 test_set = KangarooDataset()
-test_set.load_dataset('cb', is_train=False)
+test_set.load_dataset('kangaroo', is_train=False)
 test_set.prepare()
 print('Test: %d' % len(test_set.image_ids))
 # prepare config
-config = CBConfig()
+config = KangarooConfig()
 config.display()
 # define the model
 model = MaskRCNN(mode='training', model_dir='./', config=config)
